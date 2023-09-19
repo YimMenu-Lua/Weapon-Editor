@@ -8,8 +8,8 @@
 
 myTab = gui.get_tab("Weapon Editor") -- or put "GUI_TAB_WEAPONS"
 enabled = true
-attachmentCB = true
-verbose = true
+attachmentCB = false
+verbose = false
 
 require("lib/xmlreader")
 require("lib/gtaenums")

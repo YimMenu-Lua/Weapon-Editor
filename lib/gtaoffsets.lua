@@ -464,9 +464,9 @@ end
 
 -- dynamic addresses
 
-function get_wpn_info_addr(wpn_mgr_addr)
+function get_wpn_info_addr(wpn_mgr_addr, vehicle)
     if wpn_mgr_addr == nil then return nil end
-    local addr = wpn_mgr_addr:add(0x20):deref()
+    local addr = wpn_mgr_addr:add(vehicle and 0x70 or 0x20):deref()
     if addr:is_null() then
         return nil
     end

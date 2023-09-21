@@ -48,8 +48,32 @@ You can change the weapon model or audio like this:
   <Audio>AUDIO_ITEM_PISTOL_XM3</Audio>
 </Item>
 ```
-- For audio, you might need to swap weapon and back before the sound is applied.
+- For audio, you might need to swap weapon and back before the sound is applied (fix WIP).
 - For model, replacing similar guns works fine. However, sometimes the new model might be misaligned or outright won't appear.
+
+## Effects
+Effects such as muzzle/shell/tracer, and projectile's fuse/trail can all be changed:
+```xml
+<Item type="CWeaponInfo">
+  <Name>WEAPON_PISTOL</Name>
+  <Fx>
+    <FlashFx>muz_ch_tank_laser</FlashFx>
+    <ShellFx>eject_sniper_heavy</ShellFx>
+    <TracerFx>bullet_tracer_ch_tank_laser</TracerFx>
+    <GroundDisturbFxNameDefault>weap_hvy_turbulance_default</GroundDisturbFxNameDefault>
+  </Fx>
+</Item>
+<Item type="CAmmoProjectileInfo">
+  <Name>AMMO_RPG</Name>
+  <FuseFx />
+  <TrailFx>proj_xm_thruster_rpg_trail</TrailFx>
+  <PrimedFx />
+  <DisturbFxDefault>proj_disturb_dust</DisturbFxDefault>
+</Item>
+```
+- The supported effects are listed in `lib/gtaenums.lua` (under gta_ptfx).
+- You can add other particle effects from https://github.com/DurtyFree/gta-v-data-dumps/blob/master/particleEffectsCompact.json.
+- Make sure to add a new `EffectName="DictionaryName"` entry to gta_ptfx, so the new fx can be loaded.
 
 ## Attachments
 You can add attachments to different guns by the following steps

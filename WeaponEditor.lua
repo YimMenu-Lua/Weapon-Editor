@@ -5,6 +5,7 @@
 --  worldpointer  (DDHibiki) https://www.unknowncheats.me/forum/grand-theft-auto-v/496174-worldptr.html
 --  offsets       (Yimura) https://github.com/Yimura/GTAV-Classes
 --  offsets       (alexguirre) https://alexguirre.github.io/rage-parser-dumps/
+--  ptfx          (DurtyFree) https://github.com/DurtyFree/gta-v-data-dumps/
 
 myTab = gui.get_tab("Weapon Editor") -- or put "GUI_TAB_WEAPONS"
 enabled = true
@@ -49,14 +50,18 @@ function handle_enum(name, value)
     return nil
 end
 
-function recursive_parse_into_gta_form(inner_table, output_table, model_registry, value_pack, next_tag)
+function append_tag(parent_tag, key)
+    return (parent=="") and tag or (parent_tag.."."..key)
+end
+
+function recursive_parse_into_gta_form(inner_table, output_table, request_registry, value_pack, next_tag)
     -- recursive call
     for sub_k, sub_v in pairs(value_pack) do
-        parse_into_gta_form(inner_table, output_table, model_registry, sub_v, next_tag)
+        parse_into_gta_form(inner_table, output_table, request_registry, sub_v, next_tag)
     end
 end
 
-function parse_into_gta_form_array(offset_table, output_table, model_registry, value_pack, parent_tag)
+function parse_into_gta_form_array(offset_table, output_table, request_registry, value_pack, parent_tag)
     -- array syntax
     -- base, "array", ItemTemplate, count
     local key = value_pack.label
@@ -78,7 +83,7 @@ function parse_into_gta_form_array(offset_table, output_table, model_registry, v
                 val=offset.val + count * interval,
                 ref=offset.ref
             }
-            recursive_parse_into_gta_form(inner_table, output_table, model_registry, value_item, parent_tag.."."..key)
+            recursive_parse_into_gta_form(inner_table, output_table, request_registry, value_item, append_tag(parent_tag, key))
             count = count + 1
         end
     end
@@ -91,17 +96,18 @@ function parse_into_gta_form_array(offset_table, output_table, model_registry, v
     table.insert(output_table, {offset=cnt_offset, gtatype="word", val=count})
 end
 
-function parse_into_gta_form(offset_table, output_table, model_registry, value_pack, parent_tag)
+function parse_into_gta_form(offset_table, output_table, request_registry, value_pack, parent_tag)
     local key = value_pack.label
     if offset_table[key] == nil then
         return
     end
 
+    local next_tag = append_tag(parent_tag, key)
     if offset_table[key][1] == nil then
         local inner_table = offset_table[key] -- should be another table
-        recursive_parse_into_gta_form(inner_table, output_table, model_registry, value_pack, parent_tag.."."..key)
+        recursive_parse_into_gta_form(inner_table, output_table, request_registry, value_pack, next_tag)
     elseif offset_table[key][2]:find("array") ~= nil then
-        parse_into_gta_form_array(offset_table, output_table, model_registry, value_pack, parent_tag)
+        parse_into_gta_form_array(offset_table, output_table, request_registry, value_pack, parent_tag)
     else
         -- has offset + not array
         local offset = {val=offset_table[key][1]}
@@ -116,12 +122,13 @@ function parse_into_gta_form(offset_table, output_table, model_registry, value_p
         end
         local gta = "dword" -- default
         if typ == "hash" then
-            value = joaat(value)
-            model_registry[value] = 1
+            local hash = joaat(value)
+            request_registry[hash] = {key=next_tag, val=tostring(value), hash=hash}
+            value = hash
         elseif typ == "enum" then
-            value = handle_enum(parent_tag.."."..key, value)
+            value = handle_enum(next_tag, value)
         elseif typ == "enum16" then
-            value = handle_enum(parent_tag.."."..key, value)
+            value = handle_enum(next_tag, value)
             gta = "word"
         elseif typ == "int" then
             value = tonumber(value)
@@ -171,7 +178,7 @@ function recursive_look_for_items(meta, alias)
     return valid_items
 end
 
-function transform(meta, model_registry)
+function transform(meta, request_registry)
     -- transform table into efficient lookup
     local lookup = {
         CWeaponInfo={},
@@ -192,7 +199,7 @@ function transform(meta, model_registry)
             if value_pack.label == "Name" then
                 item_name = value_pack[1] -- e.g. WEAPON_PISTOL
             elseif gta_offset_types[item_type] ~= nil then
-                parse_into_gta_form(gta_offset_types[item_type], data, model_registry, value_pack, "")
+                parse_into_gta_form(gta_offset_types[item_type], data, request_registry, value_pack, "")
             end
         end
         if item_name == nil then
@@ -294,15 +301,6 @@ function reapply_patches(patch_registry)
     end
 end
 
-function try_load(script, model, looktype)
-    if not STREAMING.IS_MODEL_VALID(model) then
-        return
-    end
-    STREAMING.REQUEST_MODEL(model)
-    while not STREAMING.HAS_MODEL_LOADED(model) do script:yield() end
-    log_debug("["..looktype.."] loaded model "..tostring(model))
-end
-
 memory.pointer.patch_float = function(self, value)
     local back = self:get_dword()
     self:set_float(value)
@@ -311,7 +309,7 @@ memory.pointer.patch_float = function(self, value)
     return self:patch_dword(f2d)
 end
 
-function apply_weapons_meta(script, lookup, looktype, curr_weap, base_addr, model_registry, memory_patch_registry)
+function apply_weapons_meta(script, lookup, looktype, curr_weap, base_addr, request_registry, memory_patch_registry)
     if memory_patch_registry[curr_weap] == nil then
         memory_patch_registry[curr_weap] = {}
         local data = lookup[looktype][curr_weap]
@@ -326,8 +324,8 @@ function apply_weapons_meta(script, lookup, looktype, curr_weap, base_addr, mode
             elseif v.gtatype == "word" then
                 field_patches[1] = wpn_field_addr:patch_word(v.val)
             elseif v.gtatype == "dword" then
-                if model_registry[v.val] ~= nil then
-                    try_load(script, v.val, looktype)
+                if request_registry[v.val] ~= nil then
+                    handle_request(script, request_registry[v.val])
                 end
                 field_patches[1] = wpn_field_addr:patch_dword(v.val)
             elseif v.gtatype == "float" then
@@ -386,14 +384,15 @@ end
 --------------------------------- GAMEPLAY
 function get_current_weapon(wpn_mgr_addr)
     if wpn_mgr_addr == nil then return false, 0 end
-    -- dynamic
-    local cur_weap = wpn_mgr_addr:add(0x18):get_dword()
-    local has_weap = false
-    -- yet to support vehicle weapons
-    if wpn_mgr_addr:add(0x20):deref():is_valid() then  -- or wpn_mgr_addr:add(0x70):deref():is_valid()
-        has_weap = (cur_weap ~= 0xA2719263)
+    local wpn_info_addr = get_wpn_info_addr(wpn_mgr_addr, false)
+    if wpn_info_addr == nil then
+        wpn_info_addr = get_wpn_info_addr(wpn_mgr_addr, true)
     end
-    return has_weap, cur_weap
+    if wpn_info_addr == nil then
+        return nil, 0
+    end
+    local cur_weap = wpn_info_addr:add(0x10):get_dword()
+    return wpn_info_addr, cur_weap
 end
 
 function get_current_weapon_obj(wpn_mgr_addr)
@@ -417,16 +416,55 @@ function toggle_attachment(curr_weap, attachment, force_true)
     end
 end
 
-function request_assets(script)
-    if wpn_text == nil then return end
-    log_debug("[asset] Requesting:"..wpn_text)
-    local wpn_hash = joaat(wpn_text)
-    if not WEAPON.IS_WEAPON_VALID(wpn_hash) then
-        log_debug("[asset] invalid weapon ("..tostring(wpn_hash)..")")
+function request_model(script, hash)
+    if not STREAMING.IS_MODEL_VALID(hash) then
         return
     end
-    WEAPON.REQUEST_WEAPON_ASSET(wpn_hash, 31, 0)
-    while not WEAPON.HAS_WEAPON_ASSET_LOADED(wpn_hash) do script:yield() end
+    STREAMING.REQUEST_MODEL(hash)
+    while not STREAMING.HAS_MODEL_LOADED(hash) do script:yield() end
+    log_debug("Loaded model: "..tostring(hash))
+end
+
+function request_ptfx(script, name)
+    -- if name == "core" then return end -- core might be loaded by default...
+    STREAMING.REQUEST_NAMED_PTFX_ASSET(name)
+    while not STREAMING.HAS_NAMED_PTFX_ASSET_LOADED(name) do script:yield() end
+    log_debug("Loaded ptfx: "..name)
+end
+
+function request_assets(script, name)
+    local hash = joaat(name)
+    if not WEAPON.IS_WEAPON_VALID(hash) then
+        return
+    end
+    WEAPON.REQUEST_WEAPON_ASSET(hash, 31, 0)
+    while not WEAPON.HAS_WEAPON_ASSET_LOADED(hash) do script:yield() end
+    log_debug("Loaded assets: "..name)
+end
+
+function handle_request(script, info)
+    if info.key:find("Fx") ~= nil and gta_ptfx[info.val] ~= nil then
+        request_ptfx(script, gta_ptfx[info.val])
+    elseif info.val:find("WEAPON_") ~= nil then
+        request_assets(script, info.val)
+    else
+        request_model(script, info.hash)
+    end
+end
+
+function release_all_requests()
+    for h, info in ipairs(request_registry) do
+        if info.key:find("Fx") ~= nil and gta_ptfx[info.val] ~= nil then
+            STREAMING.REMOVE_NAMED_PTFX_ASSET(gta_ptfx[info.val])
+            log_debug("Released ptfx: "..info.val)
+        elseif info.val:find("WEAPON_") ~= nil then
+            WEAPON.REMOVE_WEAPON_ASSET(info.hash)
+            log_debug("Released weapon: "..info.val)
+        elseif STREAMING.IS_MODEL_VALID(info.hash) then
+            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(info.hash)
+            log_debug("Released model: "..info.val)
+        end
+    end
 end
 
 function player_changed()
@@ -443,25 +481,26 @@ end
 function reload_meta()
     -- reset everything
     prev_weapon = 0 -- forces update on meta changed
-    model_registry = {}
     attachment_registry = {}
 
     restore_all_patches()
+    release_all_requests()
     memory_patch_registry = {}
+    request_registry = {}
     collectgarbage("collect")
 
     package.loaded.weaponsmeta = nil
     require("weaponsmeta")
     rawxml = collect(weaponsmeta)
-    lookup = transform(rawxml, model_registry)
+    lookup = transform(rawxml, request_registry)
     register_attachments(rawxml, {}, 0, {}, attachment_registry)
     log_info("weaponsmeta.lua reloaded.")
 end
 
-has_weap = false
 curr_weap = 0
 curr_weap_obj = 0
 bone_registry = {}
+request_registry = {}
 memory_patch_registry = {}
 reload_meta()
 world_addr = get_world_addr()
@@ -492,7 +531,7 @@ myTab:add_imgui(function()
     end
 
     ImGui.Text("Modded Weapon:")
-    if has_weap and attachment_registry[curr_weap] ~= nil then
+    if attachment_registry[curr_weap] ~= nil then
         ImGui.SameLine()
         ImGui.Text(attachment_registry[curr_weap].Name)
     elseif ImGui.IsItemHovered() then
@@ -500,7 +539,7 @@ myTab:add_imgui(function()
     end
     if ImGui.BeginListBox("##attachlist", 420, 200) then
 
-        if has_weap and attachment_registry[curr_weap] ~= nil then
+        if attachment_registry[curr_weap] ~= nil then
             for i, pack in ipairs(attachment_registry[curr_weap]) do
                 if ImGui.Selectable(pack.Name) then
                     toggle_attachment(curr_weap, joaat(pack.Name))
@@ -533,7 +572,7 @@ myTab:add_imgui(function()
         wpn_text, _ = ImGui.InputText("##weaponasset", wpn_text or "WEAPON_", 50)
         ImGui.SameLine()
         if ImGui.Button("Request Assets") then
-            script.run_in_fiber(request_assets)
+            script.run_in_fiber(function(script) request_assets(script, wpn_text) end)
         end
     end
 end)
@@ -544,20 +583,19 @@ script.register_looped("weaponloop", function (sc)
         wpn_mgr_addr = get_wpn_mgr_addr(world_addr)
     end
     -- on weapon changed
-    has_weap, curr_weap = get_current_weapon(wpn_mgr_addr)
-    if has_weap and curr_weap ~= prev_weapon then
+    wpn_info_addr, curr_weap = get_current_weapon(wpn_mgr_addr)
+    if curr_weap ~= 0 and curr_weap ~= prev_weapon then
         prev_weapon = curr_weap
 
         if not enabled then
             goto skipapply
         end
         -- apply CWeaponInfo changes
-        local wpn_info_addr = get_wpn_info_addr(wpn_mgr_addr)
         if wpn_info_addr == nil then
             goto skipapply
         end
         if lookup.CWeaponInfo[curr_weap] ~= nil then
-            apply_weapons_meta(sc, lookup, "CWeaponInfo", curr_weap, wpn_info_addr, model_registry, memory_patch_registry)
+            apply_weapons_meta(sc, lookup, "CWeaponInfo", curr_weap, wpn_info_addr, request_registry, memory_patch_registry)
         end
 
         -- apply default components
@@ -576,7 +614,7 @@ script.register_looped("weaponloop", function (sc)
         end
         local curr_ammo = ammo_info_addr:add(0x10):get_dword()
         if lookup.CAmmoInfo[curr_ammo] ~= nil then
-            apply_weapons_meta(sc, lookup, "CAmmoInfo", curr_ammo, ammo_info_addr, model_registry, memory_patch_registry)
+            apply_weapons_meta(sc, lookup, "CAmmoInfo", curr_ammo, ammo_info_addr, request_registry, memory_patch_registry)
         end
     end
     ::skipapply::
@@ -584,7 +622,7 @@ script.register_looped("weaponloop", function (sc)
     -- get bones
     bone_registry = {}
     curr_weap_obj = get_current_weapon_obj(wpn_mgr_addr)
-    if has_weap and curr_weap_obj ~= 0 then
+    if curr_weap ~= 0 and curr_weap_obj ~= 0 then
         for _, bone_name in ipairs(gta_enums.WeaponBoneId) do
             local bone = ENTITY.GET_ENTITY_BONE_INDEX_BY_NAME(curr_weap_obj, bone_name)
             if bone ~= -1 then

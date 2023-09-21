@@ -43,7 +43,7 @@ The included `weaponsmeta.lua` offers the following modifications.
 | RecoilShakeAmplitude |  No Recoil |Undefined|
 | AccuracySpread |  No Spread|Undefined|
 | Damage, *DamageModifier |  Damage Override|Yimmenu overrides WeaponEditor|
-<!-- | VEHICLE_WEAPON_* (soon be added) |  Self>Vehicle>Fun Features>Custom vehicle Weapons|Undefined| -->
+| fields of VEHICLE_WEAPON_* |  Vehicle>Fun>Custom Vehicle Weapons|Undefined|
 - Undefined means two options will try to set value on the same field, and they might fail to restore the value when toggled off.
 - Rule of thumb: If you want global effect on all weapons -> go with Yimmenu options. WeaponEditor is for finetuning each gun.
 
@@ -65,3 +65,4 @@ In general it is unkwown how the changes appear to others online. Known issues:
 - [NativeDB](https://alloc8or.re/gta5/nativedb/)
 - [GTAV-Classes](https://github.com/Yimura/GTAV-Classes)
 - [rage-parser-dumps](https://alexguirre.github.io/rage-parser-dumps/)
+- [gta-v-data-dumps](https://github.com/DurtyFree/gta-v-data-dumps/)

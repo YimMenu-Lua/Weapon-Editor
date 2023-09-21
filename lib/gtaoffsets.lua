@@ -108,16 +108,17 @@ gta_offset_types = {
         RollChangeRate={0x0190, "float"},
         MaxRollAngleSin={0x0194, "float"},
         LifeTimePlayerVehicleLockedOverrideMP={0x0198, "float"},
-        HomingRocketParams={-- 0x019c
-            ShouldUseHomingParamsFromInfo={0x019c, "bool"},
-            ShouldIgnoreOwnerCombatBehaviour={0x019c+0x01, "bool"},
-            TimeBeforeStartingHoming={0x019c+0x04, "float"},
-            TimeBeforeHomingAngleBreak={0x019c+0x08, "float"},
-            TurnRateModifier={0x019c+0x0c, "float"},
-            PitchYawRollClamp={0x019c+0x10, "float"},
-            DefaultHomingRocketBreakLockAngle={0x019c+0x14, "float"},
-            DefaultHomingRocketBreakLockAngleClose={0x019c+0x18, "float"},
-            DefaultHomingRocketBreakLockCloseDistance={0x019c+0x1c, "float"}
+        HomingRocketParams={
+            _base={val=0x019c},
+            ShouldUseHomingParamsFromInfo={0x00, "bool"},
+            ShouldIgnoreOwnerCombatBehaviour={0x01, "bool"},
+            TimeBeforeStartingHoming={0x04, "float"},
+            TimeBeforeHomingAngleBreak={0x08, "float"},
+            TurnRateModifier={0x0c, "float"},
+            PitchYawRollClamp={0x10, "float"},
+            DefaultHomingRocketBreakLockAngle={0x14, "float"},
+            DefaultHomingRocketBreakLockAngleClose={0x18, "float"},
+            DefaultHomingRocketBreakLockCloseDistance={0x1c, "float"}
         }
     },
     CWeaponInfo={

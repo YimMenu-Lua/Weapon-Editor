@@ -51,7 +51,7 @@ function handle_enum(name, value)
 end
 
 function append_tag(parent_tag, key)
-    return (parent=="") and tag or (parent_tag.."."..key)
+    return (parent_tag=="") and key or (parent_tag.."."..key)
 end
 
 function recursive_parse_into_gta_form(inner_table, output_table, request_registry, value_pack, next_tag)
@@ -123,7 +123,7 @@ function parse_into_gta_form(offset_table, output_table, request_registry, value
         local gta = "dword" -- default
         if typ == "hash" then
             local hash = joaat(value)
-            request_registry[hash] = {key=next_tag, val=tostring(value), hash=hash}
+            request_registry[hash] = {key=next_tag, val=string.lower(tostring(value)), hash=hash}
             value = hash
         elseif typ == "enum" then
             value = handle_enum(next_tag, value)
@@ -442,10 +442,17 @@ function request_assets(script, name)
     log_debug("Loaded assets: "..name)
 end
 
+function request_audio(script, name)
+    while not AUDIO.REQUEST_SCRIPT_AUDIO_BANK(name) do script:yield() end
+    log_debug("Loaded audio: "..name)
+end
+
 function handle_request(script, info)
     if info.key:find("Fx") ~= nil and gta_ptfx[info.val] ~= nil then
         request_ptfx(script, gta_ptfx[info.val])
-    elseif info.val:find("WEAPON_") ~= nil then
+    elseif info.key:find("Audio") ~= nil and gta_sfx[info.val] ~= nil then
+        request_audio(script, gta_sfx[info.val])
+    elseif info.val:find("weapon_") ~= nil then
         request_assets(script, info.val)
     else
         request_model(script, info.hash)
@@ -457,7 +464,10 @@ function release_all_requests()
         if info.key:find("Fx") ~= nil and gta_ptfx[info.val] ~= nil then
             STREAMING.REMOVE_NAMED_PTFX_ASSET(gta_ptfx[info.val])
             log_debug("Released ptfx: "..info.val)
-        elseif info.val:find("WEAPON_") ~= nil then
+        elseif info.key:find("Audio") ~= nil and gta_sfx[info.val] ~= nil then
+            AUDIO.RELEASE_NAMED_SCRIPT_AUDIO_BANK(gta_sfx[info.val])
+            log_debug("Released audio: "..info.val)
+        elseif info.val:find("weapon_") ~= nil then
             WEAPON.REMOVE_WEAPON_ASSET(info.hash)
             log_debug("Released weapon: "..info.val)
         elseif STREAMING.IS_MODEL_VALID(info.hash) then

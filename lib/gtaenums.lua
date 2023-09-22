@@ -758,3 +758,51 @@ gta_ptfx={
 	weap_veh_turbulance_sand="core",
 	weap_veh_turbulance_water="core"
 }
+
+gta_sfx={
+	-- this is way too much effort.. just swap weapons.
+	audio_item_vehicle_weapon_minitank_mg="DLC_HEIST3/MINITANK",
+	audio_item_vehicle_weapon_minitank_rocket="DLC_HEIST3/MINITANK",
+	audio_item_vehicle_weapon_mini_flamethrower="DLC_HEIST3/MINITANK",
+	audio_item_pistol_xm3="DLC_CM2022/WEAPON_9MM_PISTOL",
+    audio_item_gadget_pistol="DLC_HEI4/WEAPON_GADGET_PISTOL",
+	audio_item_tec_pistol="DLC_MP2023_1/WEAPON_TEC_PISTOL",
+	audio_item_db_shotgun="DLC_LOW2/DB_SHOTGUN",
+	audio_item_autoshotgun="DLC_BIKER/AUTO_SHOTGUN",
+	audio_item_compactlauncher="DLC_BIKER/SPL_LAUNCHER",
+	audio_item_doubleaction_revolver="DLC_CHRISTMAS2017/PTL_DOUBLEACTION_REVOLVER",
+	audio_item_revolver="DLC_APARTMENT/PTL_REVOLVER",
+	audio_item_navy_revolver="DLC_HEIST3/PTL_NAVY_REVOLVER",
+	audio_item_combat_shotgun="DLC_HEI4/COMBAT_SHOTGUN",
+	audio_item_service_carbine="DLC_MPSUM2/WEAPON_SERVICE_CARBINE",
+	audio_item_precision_rifle="DLC_MPSUM2/WEAPON_PRECISION_RIFLE",
+	audio_item_heavy_rifle="DLC_SECURITY/WEAPON_HEAVY_RIFLE",
+	audio_item_emp_launcher="DLC_SECURITY/WEAPON_EMP_LAUNCHER",
+	audio_item_bullpup="DLC_HEI4/WEAPON_BULLPUP",
+	-- DLC_HEI4/DLC_HEI4_FH_MG
+	-- DLC_HEI4/DLC_HEI4_V_MG
+	audio_item_pistol="WEAPONS_PLAYER/PTL_PISTOL",
+	audio_item_combatpistol="WEAPONS_PLAYER/PTL_COMBAT",
+	audio_item_appistol="WEAPONS_PLAYER/PTL_PX4",--?
+	audio_item_pistol50="WEAPONS_PLAYER/PTL_50CAL",
+	-- WEAPONS_PLAYER/PTL_RUBBER
+	audio_item_microsmg="WEAPONS_PLAYER/SMG_Micro",
+	audio_item_smg="WEAPONS_PLAYER/SMG_SMG",
+	-- WEAPONS_PLAYER/MGN_SML_AM83_verB
+	-- WEAPONS_PLAYER/MGN_SML_AM83_verA
+	-- WEAPONS_PLAYER/MGN_SML_Sc__L
+	audio_item_mg="WEAPONS_PLAYER/LMG_MG_PLAYER",
+	audio_item_combatmg="WEAPONS_PLAYER/LMG_COMBAT",
+	audio_item_pumpshotgun="WEAPONS_PLAYER/SHT_PUMP",
+	audio_item_bullpupshotgun="WEAPONS_PLAYER/SHT_BULLPUP",
+	audio_item_sniperrifle="WEAPONS_PLAYER/SNP_RIFLE",
+	audio_item_heavysniper="WEAPONS_PLAYER/SNP_HEAVY",
+	audio_item_rpg="WEAPONS_PLAYER/SPL_RPG_PLAYER",
+	audio_item_vehicle_tank="WEAPONS_PLAYER/SPL_TANK_PLAYER",
+	audio_item_grenadelauncher="WEAPONS_PLAYER/SPL_GRENADE_PLAYER",
+	audio_item_railgun="WEAPONS_PLAYER/SPL_RAILGUN",
+	audio_item_mp_railgun="WEAPONS_PLAYER/SPL_RAILGUN",
+	audio_item_minigun="WEAPONS_PLAYER/SPL_MINIGUN_PLAYER"
+	-- WEAPONS_PLAYER/SPL_PROG_AR_PLAYER
+	-- WEAPONS_PLAYER/VEH_VALKYRIE_PLAYER
+}

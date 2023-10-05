@@ -5,40 +5,61 @@ The file `weaponsmeta.lua` contains a multiline string:
 ```lua
 weaponsmeta = [[
 <Item type="CWeaponInfo">
-  ...
-</Item>
-<Item type="CAmmoInfo">
-  ...
-</Item>
 ...
 ]]
 ```
-All you need is to put modded items in the string. The mod will load on start or when you press `Reload meta`.
-
-Currently supported item types are:
+All you need is to put modded items in the string. The mod will load on start or when you press `Reload meta`. The following item types share the same syntax:
+```xml
+<Item type="TypeName">
+  <Name>ITEM_NAME</Name>
+  ...
+</Item>
 ```
-CWeaponInfo
-CAmmoInfo
-CAmmoProjectileInfo
-CAmmoThrownInfo
-CAmmoRocketInfo
-```
-and the supported fields are listed in `lib/gtaoffsets`. Checkout this [tutorial](https://forums.gta5-mods.com/topic/36832/tutorial-basic-editing-of-weapons-meta) for basics, and see the included `weaponsmeta.lua` for concrete example.
+|  TypeName | Example File (OpenIV) |
+| -------- | -|
+| CWeaponInfo<br>CAmmoInfo<br>CAmmoProjectileInfo<br>CAmmoThrownInfo<br>CAmmoRocketInfo<br>CAimingInfo<br>CVehicleWeaponInfo | common.rpf/data/ai/weapons.meta |
+| CWeaponComponentData<br>CWeaponSwapData<br>CWeaponComponentReloadData<br>CWeaponComponentReloadLoopedData<br>CWeaponComponentInfo<br>CWeaponComponentClipInfo<br>CWeaponComponentFlashLightInfo<br>CWeaponComponentScopeInfo<br>CWeaponComponentSuppressorInfo<br>CWeaponComponentVariantModelInfo<br> | common.rpf/data/ai/weaponcomponents.meta |
+|CFiringPatternInfo| https://pastebin.com/Px036isB |
 
-You don't need the complete Infos in `weapons.meta`. Just put the modified fields and values. Two exceptions to this are `<AttachPoints>` and `<WeaponFlags>`, for them you need to include the complete list of values.
+These and their supported fields are listed in `lib/gtaoffsets`. Checkout this [tutorial](https://forums.gta5-mods.com/topic/36832/tutorial-basic-editing-of-weapons-meta) for basic editing of CWeaponInfo, and see the included `weaponsmeta.lua` for concrete example.
 
+You don't need to put the entire Item into `weaponsmeta`. Simply include the modified fields and values. Except when the field is listed `"*array"` and `"flag*"` type inside `lib/gtaoffsets`, such as  `<AttachPoints>` and `<WeaponFlags>`. These types require the entire list to be overritten, so you need to include the complete values you want.
 
 ## Enums
 For enumeration (e.g. `<Explosion>`) and flag types (e.g. `<ProjectileFlags>`), you can refer to `lib/gtaenums.lua` for lists of valid values.
 
 ## AmmoInfo
-In the current state, changes on ammo are shared among weapons that use said ammo. For instance, if I put the following, then **all pistols** will be have hollow point.
+Changes on ammo are shared among weapons that use said ammo. For instance, if I put the following, then **all pistols** will be have hollow point.
 ```xml
 <Item type="CAmmoInfo">
   <Name>AMMO_PISTOL</Name>
   <AmmoSpecialType>HollowPoint</AmmoSpecialType>
 </Item>
 ```
+Meanwhile you can change the ammo type of a weapon:
+```xml
+<Item type="CWeaponInfo">
+  <Name>WEAPON_APPISTOL</Name>
+  <AmmoInfo ref="AMMO_SNIPER_EXPLOSIVE" />
+</Item>
+```
+
+## Aiming Angle
+Aim vertically like flaregun:
+```xml
+<Item type="CAimingInfo">
+  <Name>MINIGUN</Name>
+  <SweepPitchMax value="80.000000" />
+</Item>
+```
+Alternatively, just change AimingInfo to flaregun:
+```xml
+<Item type="CWeaponInfo">
+  <Name>WEAPON_MINIGUN</Name>
+  <AimingInfo ref="PISTOL_FLAREGUN_BASE_STRAFE" />
+</Item>
+```
+
 ## Model and Audio
 You can change the weapon model or audio like this:
 ```xml
@@ -48,7 +69,7 @@ You can change the weapon model or audio like this:
   <Audio>AUDIO_ITEM_PISTOL_XM3</Audio>
 </Item>
 ```
-- For audio, you might need to swap weapon and back before the sound is applied (fix WIP).
+- For audio, you might need to swap weapon and back before the sound is applied.
 - For model, replacing similar guns works fine. However, sometimes the new model might be misaligned or outright won't appear.
 
 ## Effects
@@ -143,6 +164,63 @@ For example, you can add new scopes for any weapon with `<AttachBone>WAPScop</At
 ```
 Here are more components: https://wiki.rage.mp/index.php?title=Weapons_Components
 
+## Attachments Modifications
+You can further modify the behavior of each type of attachment:
+```xml
+<Item type="CWeaponComponentClipInfo">
+  <Name>COMPONENT_HEAVYSNIPER_MK2_CLIP_EXPLOSIVE</Name>
+  <ClipSize value="16" />
+</Item>
+<Item type="CWeaponComponentScopeInfo">
+  <Name>COMPONENT_AT_SCOPE_MAX</Name>
+  <SpecialScopeType>ThermalVision</SpecialScopeType>
+</Item>
+```
+
+## Advanced Types
+The following item types alternative syntax:
+```xml
+<TypeName>
+  <Item>
+    <Name>ITEM_NAME</Name>
+    ...
+  </Item>
+</TypeName>
+```
+|  TypeName | Example File (OpenIV) |
+| -------- | -|
+| TintSpecValues<br>FiringPatternAliases<br>UpperBodyFixupExpressionData<br>WeaponGroupDamageForArmouredVehicleGlass<br> | common.rpf/data/ai/weapons.meta |
+|WeaponAnimations|common.rpf/data/ai/weaponanimations.meta  |
+|aExplosionTagData|https://gist.github.com/George0828Zhang/e9b310a124f0c97b3f0ee254c7739d04  |
+
+- These types are NOT arrays (though they may contain arrays), so you can put one or more `<Item>`'s that you want to edit inside the `<TypeName>` clause.
+- `TintSpecValues`, `UpperBodyFixupExpressionData` and `WeaponGroupDamageForArmouredVehicleGlass` contain array members, so when editing the array members, do include all original items under the array members. (Confusing I know)
+
+## Explosion Tag
+To modify a specific type of explosion, do this:
+```xml
+<aExplosionTagData>
+  <Item>
+    <name>EXP_TAG_BALANCED_CANNONS</name>
+    <camShakeName />
+    <vfxTagHashName>EXP_VFXTAG_PIPEBOMB</vfxTagHashName>
+    <fragDamage value="1500.000000" />
+    <bUseDistanceDamageCalc value="false" />
+  </Item>
+</aExplosionTagData>
+```
+
+## Animations
+Animations is a bit buggy. Each ped use a different anim set. This mod currently only apply to `Default` animation set. You could manually change the `anim_apply_set` variable to the index of desired set found in `lib/gtaenums.lua` (under gta_anim_set_keys).
+```xml
+<WeaponAnimations>
+  <Item key="WEAPON_COMBATPISTOL">
+    <AnimFireRateModifier value="2.000000" />
+    <AnimBlindFireRateModifier value="2.000000" />
+    <AnimWantingToShootFireRateModifier value="3.000000" />
+  </Item>
+</WeaponAnimations>
+```
 ## Limitations
 ### Conflicts
 
@@ -153,17 +231,19 @@ Here are more components: https://wiki.rage.mp/index.php?title=Weapons_Component
 | RecoilShakeAmplitude |  No Recoil |Undefined|
 | AccuracySpread |  No Spread|Undefined|
 | Damage, *DamageModifier |  Damage Override|Yimmenu overrides WeaponEditor|
-| fields of VEHICLE_WEAPON_* |  Vehicle>Fun>Custom Vehicle Weapons|Undefined|
+| Vehicle related Infos |  Vehicle>Fun>Custom Vehicle Weapons|Undefined|
 - Undefined means two options will try to set value on the same field, and they might fail to restore the value when toggled off.
 - Rule of thumb: If you want global effect on all weapons -> go with Yimmenu options. WeaponEditor is for finetuning each gun.
 
 ### Network Visibility
-In general it is unkwown how the changes appear to others online. Known issues:
-- If your rocket uses EMP explosion, but the homing target is far away, then rocket explosion might revert to regular, killing the target. Doesn't happen when target is close.
-- If you change projectile model, on your end it applies to other players/peds. e.g. Use chernobog missile for homing rockets, then other players' homing launcher will launch chernobog missiles.
-    - It is unknown how it looks on their end though.
+In general, the changes wont sync to others online. Known sync values:
+- Damage, AccuracySpread, AmmoSpecialType etc. (anything involving damage)
+- Explosion (close range)
 
-### Attachment Stats, Animations, Custom Ammo
-- The attachment behaviour, such as clip size, can't be changed.
-- Animations can't be changed.
-- You cannot invent new ammo types.
+Known issues:
+- If your homing rocket uses EMP explosion, but the homing target is far away, then rocket explosion might revert to regular, killing the target.
+- If you change projectile model, on your end it applies to other players/peds. e.g. Use chernobog missile for homing rockets, then other players' homing launcher will launch chernobog missiles on your screen. But both yours and their rockets appear normal to them.
+- Ptfx (e.g. FlashFx) does not sync.
+
+## Extension
+Potentially this could extend to e.g. CHandlingData, or anything whose InfoBlob/Manager offset and Item Template is known. Start from looking into class dumps: https://alexguirre.github.io/rage-parser-dumps/dump.html?game=gta5&build=3028&search=cweaponin#CWeaponInfo

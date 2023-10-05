@@ -65,7 +65,7 @@ gta_enums = {
         BARREL = 27,
         PROPANE = 28,
         BLIMP = 29,
-        FLAME_EXPLODE = 30,
+        DIR_FLAME_EXPLODE = 30,
         TANKER = 31,
         PLANE_ROCKET = 32,
         VEHICLE_BULLET = 33,
@@ -111,17 +111,17 @@ gta_enums = {
         RCTANK_ROCKET = 73,
         BOMB_WATER = 74,
         BOMB_WATER_SECONDARY = 75,
-        -- 76 ~ 80 does not appear as their name suggests
-        MINE_CNCSPIKE = 76,
-        BZGAS_MK2 = 77,
-        FLASHGRENADE = 78,
-        STUNGRENADE = 79,
-        CNC_KINETICRAM = 80,
+        -- 76 ~ 80 are exactly the same as EXTINGUISHER = 24,
+        -- EXTINGUISHER2 = 76,
+        -- EXTINGUISHER3 = 77,
+        -- EXTINGUISHER4 = 78,
+        -- EXTINGUISHER5 = 79,
+        -- EXTINGUISHER6 = 80,
         SCRIPT_MISSILE_LARGE = 81,
         SUBMARINE_BIG = 82,
         EMPLAUNCHER_EMP = 83,
         RAILGUNXM3 = 84,
-        BALANCED_CANNONS = 85,
+        BALANCED_CANNONS = 85
     },
     FireType = {
         NONE = 0,
@@ -129,7 +129,7 @@ gta_enums = {
         INSTANT_HIT = 2,
         DELAYED_HIT = 3,
         PROJECTILE = 4,
-        VOLUMETRIC_PARTICLE = 5 -- flamethrower
+        VOLUMETRIC_PARTICLE = 5
     },
     WeaponFlags = {
         CarriedInHand = 0,
@@ -515,47 +515,48 @@ gta_enums = {
         _0xE2AE184D = 33869,
         _0x2C83817A = 4126,
     },
-    -- Below are not enums, just put here for convenience.
-    WeaponBoneId = {
-        "gun_vfx_projtrail",
-        "gun_vfx_eject",
-        "gun_root",
-        "gun_muzzle",
-        "gun_magazine",
-        "gun_gripr",
-        "gun_gripl",
-        "gun_drum",
-        "gun_cylinder",
-        "gun_barrels",
-        "gun_ammo",
-        "Gun_ARM",
-        "WAPSupp_3",
-        "WAPSupp_2",
-        "WAPSupp",
-        "WAPStck",
-        "WAPSeWp",
-        "WAPScop_3",
-        "WAPScop_2",
-        "WAPScop",
-        "WAPLasr_2",
-        "WAPLasr",
-        "WAPGrip_3",
-        "WAPGrip_2",
-        "WAPGrip",
-        "WAPFlsh_2",
-        "WAPFlshLasr_3",
-        "WAPFlshLasr_2",
-        "WAPFlshLasr",
-        "WAPFlsh_2",
-        "WAPFlsh",
-        "WAPClip_2",
-        "WAPClip",
-        "WAPBarrel",
-        "Torch_Bulb",
-        "NM_Butt_Marker",
-        "Gun_Nuzzle",
+    CWeaponBoneId = {
+        -- note that CWeaponInfo's AttachBone uses hash instead of this enum
+        Gun_Feed = 36598,
+        gun_drum = 29951,
+        gun_cylinder = 3562,
+        WAPClip = 1477,
+        gun_vfx_projtrail = 41460,
+        Gun_ARM = 35315,
+        Gun_SuMuzzle = 19851,
+        Gun_FLMuzzle = 17662,
+        Torch_Bulb = 25508,
+        Bulb_On = 37737,
+        Bulb_Off = 54012,
+        AAPSupp = 23965,
+        AAPFlsh = 33620,
+        AAPBarrel = 38168,
+        AAPCamo = 18555,
+        AAPCamo2 = 33074,
+        AAPClip = 21180,
+        AAPCover = 27427,
+        AAPGrip = 39100,
+        AAPScop = 19341
+    },
+    SpecialScopeType = {
+        None = 0,
+        NightVision = 1,
+        ThermalVision = 2
     }
 }
+
+local bone_keys = {
+    "GunFeedBone",
+    "RotateBarrelBone",
+    "RotateBarrelBone2",
+    "LightBone",
+    "FlashLightBone",
+    "FlashLightBoneBulbOn",
+    "FlashLightBoneBulbOff",
+    "MuzzleBone",
+    "AttachBone"
+}
+for _, key in pairs(bone_keys) do gta_enums[key] = gta_enums.CWeaponBoneId end
 
 gta_ptfx={
     bullet_shotgun_tracer="core",
@@ -746,8 +747,17 @@ gta_ptfx={
     proj_xm_thruster_rpg_trail="veh_thruster",
     proj_xs_sr_raygun_trail="weap_xs_weapons",
     proj_yacht_defence_trail="scr_apartment_mp",
+    scr_agency3b_proj_rpg_trail="scr_agencyheistb",
+    scr_bigscore_rpg_trail="scr_bigscore",
+    scr_ex2_rpg_trail="scr_exile2",
+    scr_ie_vv_muzzle_flash="scr_ie_vv",
+    scr_impexp_tw_rpg_trail="scr_ie_tw",
     scr_sum_gy_exp_water_bomb="scr_sum_gy",
     scr_sum_gy_water_bomb_trail="scr_sum_gy",
+    scr_xs_guided_missile_trail="scr_xs_props",
+    tracer_xm_shotgun_inc="weap_xm_shotgun_rounds",
+    veh_nitrous="veh_xs_vehicle_mods",
+    veh_rocket_boost="veh_impexp_rocket",
     weap_ch_hazcan="weap_ch_weapons",
     weap_ch_hazcan_splash_sp="weap_ch_weapons",
     weap_extinguisher="core",
@@ -812,4 +822,37 @@ gta_sfx={
     audio_item_minigun="WEAPONS_PLAYER/SPL_MINIGUN_PLAYER"
     -- WEAPONS_PLAYER/SPL_PROG_AR_PLAYER
     -- WEAPONS_PLAYER/VEH_VALKYRIE_PLAYER
+}
+
+gta_anim_set_keys = {
+    "Trevor",
+    'FirstPersonScope',
+    'FirstPersonTrevorScope',
+    'FirstPersonFranklinAiming',
+    'FirstPersonMichaelAiming',
+    "Franklin",
+    'SuperFat',
+    'Ballistic',
+    "Michael",
+    'GangFemale',
+    'Female',
+    'Gang1H',
+    'FirstPersonMPFemale',
+    'Hillbilly',
+    'FirstPersonRNG',
+    'FirstPersonTrevor',
+    'MP_F_Freemode',
+    'FirstPersonFranklinScope',
+    'FirstPersonMichaelRNG',
+    'Gang',
+    'FirstPersonFranklinRNG',
+    'FirstPersonFranklin',
+    'Fat',
+    'FirstPersonMichaelScope',
+    'FirstPersonAiming',
+    'FirstPersonTrevorRNG',
+    'Default', -- 26
+    'FirstPersonMichael',
+    'FirstPerson',
+    'FirstPersonTrevorAiming'
 }

@@ -58,10 +58,10 @@ gta_offset_types = {
         DisturbFxScale={0x00d0, "float"},
         GroundFxProbeDistance={0x00d4, "float"},
         FxAltTintColour={0x00d8, "bool"},
-        LightOnlyActiveWhenStuck={0x00d9, "bool"},
-        LightFlickers={0x00da, "bool"},
-        LightSpeedsUp={0x00db, "bool"},
-        LightBone={0x00dc, "gunbone"},
+        LightOnlyActiveWhenStuck={0x00da, "bool"},
+        LightFlickers={0x00db, "bool"},
+        LightSpeedsUp={0x00dc, "bool"},
+        LightBone={0x00de, "enum16"},
         LightColour={0x00e0, "vec3"},
         LightIntensity={0x00f0, "float"},
         LightRange={0x00f4, "float"},
@@ -146,8 +146,8 @@ gta_offset_types = {
         },
         FireType={0x0054, "enum"},
         WheelSlot={0x0058, "enum"},
-        -- AmmoInfo={0x0060, "ref_ammo"}, -- named ref: can't change ref if new ammo's addr not known
-        -- AimingInfo={0x0068, "ref_aiming"},  -- named ref
+        AmmoInfo={0x0060, "ref_CAmmoInfo"},
+        AimingInfo={0x0068, "ref_CAimingInfo"},
         ClipSize={0x0070, "int"},
         AccuracySpread={0x0074, "float"},
         AccurateModeAccuracyModifier={0x0078, "float"},
@@ -276,7 +276,7 @@ gta_offset_types = {
         DamageFallOffRangeMin={0x0298, "float"},
         DamageFallOffRangeMax={0x029c, "float"},
         DamageFallOffModifier={0x02a8, "float"},
-        VehicleWeaponHash={0x02b4, "float"},
+        VehicleWeaponHash={0x02b4, "hash"},
         DefaultCameraHash={0x02b8, "hash"},
         AimCameraHash={0x02bc, "hash"},
         FireCameraHash={0x02c0, "hash"},
@@ -409,11 +409,11 @@ gta_offset_types = {
             ItemSize=0x6c,
             Count={0x08f8, "int"}
         },
-        GunFeedBone={0x08fc, "gunbone"},
+        GunFeedBone={0x08fc, "enum16"},
         WeaponFlags={0x0900, "flags192"},
-        -- TintSpecValues={0x0918, "STRUCT.EXTERNAL_NAMED"}, -- named ref
-        -- FiringPatternAliases={0x0920, "STRUCT.EXTERNAL_NAMED"}, -- named ref
-        -- ReloadUpperBodyFixupExpressionData={0x0928, "STRUCT.EXTERNAL_NAMED"}, -- named ref
+        TintSpecValues={0x0918, "ref_TintSpecValues"},
+        FiringPatternAliases={0x0920, "ref_FiringPatternAliases"},
+        ReloadUpperBodyFixupExpressionData={0x0928, "ref_UpperBodyFixupExpressionData"},
         TargetSequenceGroup={0x0930, "hash"},
         BulletDirectionOffsetInDegrees={0x0934, "float"},
         BulletDirectionPitchOffset={0x0938, "float"},
@@ -425,59 +425,349 @@ gta_offset_types = {
         MeleeRightFistTargetHealthDamageScaler={0x0964, "float"},
         AirborneAircraftLockOnMultiplier={0x0968, "float"},
         ArmouredVehicleGlassDamageOverride={0x096c, "float"},
-        -- CamoDiffuseTexIdxs={0x0970, "MAP.ATBINARYMAP"}, -- named ref + map(unk struct)
-        RotateBarrelBone={0x0988, "gunbone"},
-        RotateBarrelBone2={0x098a, "gunbone"}
+        -- CamoDiffuseTexIdxs={0x0970, "MAP.ATBINARYMAP"}, -- atarray inside atarray
+        RotateBarrelBone={0x0988, "enum16"},
+        RotateBarrelBone2={0x098a, "enum16"}
     },
+    CAimingInfo={
+        HeadingLimit={0x4, "float"},
+        SweepPitchMin={0x8, "float"},
+        SweepPitchMax={0xc, "float"}
+    },
+    TintSpecValues={
+        Tints={
+            0x08, "at_array",
+            ItemTemplate={
+                -- _base set at runtime
+                SpecFresnel={0x0, "float"},
+                SpecFalloffMult={0x4, "float"},
+                SpecIntMult={0x8, "float"},
+                Spec2Factor={0xc, "float"},
+                Spec2ColorInt={0x10, "float"},
+                Spec2Color={0x14, "int"},
+            },
+            ItemSize=0x18,
+            Count={0x10, "int16"}
+        }
+    },
+    FiringPatternAliases={
+        Aliases={
+            0x08, "at_array",
+            ItemTemplate={
+                -- _base set at runtime
+                FiringPattern={0x0, "hash"},
+                Alias={0x4, "hash"},
+            },
+            ItemSize=0x8,
+            Count={0x10, "int16"}
+        }
+    },
+    UpperBodyFixupExpressionData={
+        Data={
+            0x04, "array",
+            ItemTemplate={
+                -- _base set at runtime
+                Idle={0x0, "float"},
+                Walk={0x4, "float"},
+                Run={0x8, "float"},
+            },
+            ItemSize=0xc,
+            -- Count: ARRAY.MEMBER count is fixed.
+        }
+    },
+    CVehicleWeaponInfo={
+        KickbackAmplitude={0x4, "float"},
+        KickbackImpulse={0x8, "float"},
+        KickbackOverrideTiming={0xc, "float"},
+    },
+    WeaponGroupDamageForArmouredVehicleGlass={
+        GroupHash={0x0, "hash"},
+        Damage={0x4, "float"},
+    },
+    CWeaponComponentInfo={
+        Model={0x14, "hash"},
+        LocName={0x18, "hash"},
+        LocDesc={0x1c, "hash"},
+        AttachBone={0x20, "enum16"},
+        AccuracyModifier={
+            _base={ref=0x28, val=0x0},
+            AccuracyModifier={0x00, "float"}
+        },
+        DamageModifier={
+            _base={ref=0x30, val=0x0},
+            DamageModifier={0x00, "float"}
+        },
+        FallOffModifier={
+            _base={ref=0x38, val=0x0},
+            FallOffModifier={0x00, "float"}
+        },
+        bShownOnWheel={0x40, "bool"},
+        CreateObject={0x41, "bool"},
+        ApplyWeaponTint={0x42, "bool"},
+        HudDamage={0x43, "byte"},
+        HudSpeed={0x44, "byte"},
+        HudCapacity={0x45, "byte"},
+        HudAccuracy={0x46, "byte"},
+        HudRange={0x47, "byte"},
+        -- The following are for CWeaponComponentClipInfo
+        ClipSize={0x48, "int"},
+        ReloadData={0x50, "ref_CWeaponComponentData"},
+        AmmoInfo={0x58, "hash"},
+        TracerFx={0x5c, "hash"},
+        TracerFxSpacing={0x60, "int"},
+        TracerFxForceLast={0x64, "int"},
+        ShellFx={0x68, "hash"},
+        ShellFxFP={0x6c, "hash"},
+        BulletsInBatch={0x70, "int"},
+        -- The following are for CWeaponComponentFlashLightInfo
+        MainLightIntensity={0x48, "float"},
+        MainLightColor={0x4c, "int"},
+        MainLightRange={0x50, "float"},
+        MainLightFalloffExponent={0x54, "float"},
+        MainLightInnerAngle={0x58, "float"},
+        MainLightOuterAngle={0x5c, "float"},
+        MainLightCoronaIntensity={0x60, "float"},
+        MainLightCoronaSize={0x64, "float"},
+        MainLightVolumeIntensity={0x68, "float"},
+        MainLightVolumeSize={0x6c, "float"},
+        MainLightVolumeExponent={0x70, "float"},
+        MainLightVolumeOuterColor={0x74, "int"},
+        MainLightShadowFadeDistance={0x78, "float"},
+        MainLightSpecularFadeDistance={0x7c, "float"},
+        SecondaryLightIntensity={0x80, "float"},
+        SecondaryLightColor={0x84, "int"},
+        SecondaryLightRange={0x88, "float"},
+        SecondaryLightFalloffExponent={0x8c, "float"},
+        SecondaryLightInnerAngle={0x90, "float"},
+        SecondaryLightOuterAngle={0x94, "float"},
+        SecondaryLightVolumeIntensity={0x98, "float"},
+        SecondaryLightVolumeSize={0x9c, "float"},
+        SecondaryLightVolumeExponent={0xa0, "float"},
+        SecondaryLightVolumeOuterColor={0xa4, "int"},
+        SecondaryLightFadeDistance={0xa8, "float"},
+        fTargetDistalongAimCamera={0xac, "float"},
+        FlashLightBone={0xb0, "enum16"},
+        FlashLightBoneBulbOn={0xb2, "enum16"},
+        FlashLightBoneBulbOff={0xb4, "enum16"},
+        ToggleWhenAiming={0xb6, "bool"},
+        -- The following are for CWeaponComponentScopeInfo
+        CameraHash={0x48, "hash"},
+        RecoilShakeAmplitude={0x4c, "float"},
+        ExtraZoomFactorForAccurateMode={0x50, "float"},
+        ReticuleHash={0x54, "hash"},
+        SpecialScopeType={0x58, "enum"},
+        -- The following are for CWeaponComponentSuppressorInfo
+        MuzzleBone={0x48, "enum16"},
+        FlashFx={0x4c, "hash"},
+        ShouldSilence={0x50, "bool"},
+        RecoilShakeAmplitudeModifier={0x54, "float"},
+        -- The following are for CWeaponComponentVariantModelInfo
+        TintIndexOverride={0x48, "byte"},
+        ExtraComponents={
+            0x50, "at_array",
+            ItemTemplate={
+                -- _base set at runtime
+                ComponentName={0x00, "hash"},
+                ComponentModel={0x04, "hash"}
+            },
+            ItemSize=0x8,
+            Count={0x58, "int16"}
+        }
+    },
+    CWeaponComponentData={
+        -- The following are for CWeaponComponentReloadData
+        PedIdleReloadClipId={0x10, "hash"},
+        PedIdleReloadEmptyClipId={0x14, "hash"},
+        PedAimReloadClipId={0x18, "hash"},
+        PedAimReloadEmptyClipId={0x1c, "hash"},
+        PedLowCoverReloadEmptyClipId={0x20, "hash"},
+        PedLowLeftCoverReloadClipId={0x24, "hash"},
+        PedLowRightCoverReloadClipId={0x28, "hash"},
+        WeaponIdleReloadClipId={0x2c, "hash"},
+        WeaponIdleReloadEmptyClipId={0x30, "hash"},
+        WeaponAimReloadClipId={0x34, "hash"},
+        WeaponAimReloadEmptyClipId={0x38, "hash"},
+        WeaponLowCoverReloadEmptyClipId={0x3c, "hash"},
+        WeaponLowLeftCoverReloadClipId={0x40, "hash"},
+        WeaponLowRightCoverReloadClipId={0x44, "hash"},
+        AnimRateModifier={0x48, "float"},
+        -- The following are for CWeaponSwapData
+        PedHolsterClipId={0x10, "hash"},
+        PedHolsterCrouchClipId={0x14, "hash"},
+        PedHolsterCoverClipId={0x18, "hash"},
+        PedHolsterDiscardClipId={0x1c, "hash"},
+        PedHolsterCrouchDiscardClipId={0x20, "hash"},
+        PedHolsterWeaponClipId={0x24, "hash"},
+        PedUnHolsterClipId={0x28, "hash"},
+        PedUnHolsterCrouchClipId={0x2c, "hash"},
+        PedUnHolsterLeftCoverClipId={0x30, "hash"},
+        PedUnHolsterRightCoverClipId={0x34, "hash"},
+        PedUnHolsterWeaponClipId={0x38, "hash"},
+        AnimPlaybackRate={0x3c, "float"},
+        -- The following are for CWeaponComponentReloadLoopedData
+        Sections={
+            0x10, "array",
+            ItemTemplate={
+                -- _base set at runtime
+                PedIdleReloadClipId={0x10, "hash"},
+                PedIdleReloadEmptyClipId={0x14, "hash"},
+                PedAimReloadClipId={0x18, "hash"},
+                PedAimReloadEmptyClipId={0x1c, "hash"},
+                PedLowCoverReloadEmptyClipId={0x20, "hash"},
+                PedLowLeftCoverReloadClipId={0x24, "hash"},
+                PedLowRightCoverReloadClipId={0x28, "hash"},
+                WeaponIdleReloadClipId={0x2c, "hash"},
+                WeaponIdleReloadEmptyClipId={0x30, "hash"},
+                WeaponAimReloadClipId={0x34, "hash"},
+                WeaponAimReloadEmptyClipId={0x38, "hash"},
+                WeaponLowCoverReloadEmptyClipId={0x3c, "hash"},
+                WeaponLowLeftCoverReloadClipId={0x40, "hash"},
+                WeaponLowRightCoverReloadClipId={0x44, "hash"},
+                AnimRateModifier={0x48, "float"},
+            },
+            ItemSize=0xc,
+            -- Count: ARRAY.MEMBER count is fixed.
+        }
+    },
+    aExplosionTagData={
+        damageAtCentre={0x10, "float"},
+        damageAtEdge={0x14, "float"},
+        networkPlayerModifier={0x18, "float"},
+        networkPedModifier={0x1c, "float"},
+        endRadius={0x20, "float"},
+        initSpeed={0x24, "float"},
+        decayFactor={0x28, "float"},
+        forceFactor={0x2c, "float"},
+        fRagdollForceModifier={0x30, "float"},
+        fSelfForceModifier={0x34, "float"},
+        directedWidth={0x38, "float"},
+        directedLifeTime={0x3c, "float"},
+        camShake={0x40, "float"},
+        camShakeRollOffScaling={0x44, "float"},
+        shockingEventVisualRangeOverride={0x48, "float"},
+        shockingEventAudioRangeOverride={0x4c, "float"},
+        fragDamage={0x50, "float"},
+        minorExplosion={0x54, "bool"},
+        bAppliesContinuousDamage={0x55, "bool"},
+        bPostProcessCollisionsWithNoForce={0x56, "bool"},
+        bDamageVehicles={0x57, "bool"},
+        bDamageObjects={0x58, "bool"},
+        bOnlyAffectsLivePeds={0x59, "bool"},
+        bIgnoreExplodingEntity={0x5a, "bool"},
+        -- 5b unk bool
+        bNoOcclusion={0x5c, "bool"},
+        explodeAttachEntityWhenFinished={0x5d, "bool"},
+        bCanSetPedOnFire={0x5e, "bool"},
+        bCanSetPlayerOnFire={0x5f, "bool"},
+        bSuppressCrime={0x60, "bool"},
+        bUseDistanceDamageCalc={0x61, "bool"},
+        bPreventWaterExplosionVFX={0x62, "bool"},
+        bIgnoreRatioCheckForFire={0x63, "bool"},
+        bAllowUnderwaterExplosion={0x64, "bool"},
+        bForceVehicleExplosion={0x65, "bool"},
+        midRadius={0x68, "float"},
+        damageAtMid={0x6c, "float"},
+        bApplyVehicleEMP={0x70, "bool"},
+        bApplyVehicleSlick={0x71, "bool"},
+        bApplyVehicleSlowdown={0x72, "bool"},
+        bApplyVehicleTyrePop={0x73, "bool"},
+        -- 74 unk bool
+        bForcePetrolTankDamage={0x75, "bool"},
+        bIsSmokeGrenade={0x76, "bool"},
+        bForceNonTimedVfx={0x77, "bool"},
+        -- 78-7b unk bool
+        camShakeName={0x7c, "hash"},
+        vfxTagHashName={0x80, "hash"}
+    },
+    WeaponAnimations={
+        CoverMovementClipSetHash={0x0, "hash"},
+        CoverMovementExtraClipSetHash={0x4, "hash"},
+        CoverAlternateMovementClipSetHash={0x8, "hash"},
+        CoverWeaponClipSetHash={0xc, "hash"},
+        MotionClipSetHash={0x10, "hash"},
+        MotionFilterHash={0x14, "hash"},
+        MotionCrouchClipSetHash={0x18, "hash"},
+        MotionStrafingClipSetHash={0x1c, "hash"},
+        MotionStrafingStealthClipSetHash={0x20, "hash"},
+        MotionStrafingUpperBodyClipSetHash={0x24, "hash"},
+        WeaponClipSetHash={0x28, "hash"},
+        WeaponClipSetStreamedHash={0x2c, "hash"},
+        WeaponClipSetHashInjured={0x30, "hash"},
+        WeaponClipSetHashStealth={0x34, "hash"},
+        WeaponClipSetHashHiCover={0x38, "hash"},
+        AlternativeClipSetWhenBlocked={0x3c, "hash"},
+        ScopeWeaponClipSet={0x40, "hash"},
+        AlternateAimingStandingClipSetHash={0x44, "hash"},
+        AlternateAimingCrouchingClipSetHash={0x48, "hash"},
+        FiringVariationsStandingClipSetHash={0x4c, "hash"},
+        FiringVariationsCrouchingClipSetHash={0x50, "hash"},
+        AimTurnStandingClipSetHash={0x54, "hash"},
+        AimTurnCrouchingClipSetHash={0x58, "hash"},
+        MeleeBaseClipSetHash={0x5c, "hash"},
+        MeleeClipSetHash={0x60, "hash"},
+        MeleeVariationClipSetHash={0x64, "hash"},
+        MeleeTauntClipSetHash={0x68, "hash"},
+        MeleeSupportTauntClipSetHash={0x6c, "hash"},
+        MeleeStealthClipSetHash={0x70, "hash"},
+        ShellShockedClipSetHash={0x74, "hash"},
+        JumpUpperbodyClipSetHash={0x78, "hash"},
+        FallUpperbodyClipSetHash={0x7c, "hash"},
+        FromStrafeTransitionUpperBodyClipSetHash={0x80, "hash"},
+        SwapWeaponFilterHash={0x84, "hash"},
+        SwapWeaponInLowCoverFilterHash={0x88, "hash"},
+        WeaponSwapData={0x90, "ref_CWeaponComponentData"},
+        WeaponSwapClipSetHash={0x98, "hash"},
+        AimGrenadeThrowNormalClipsetHash={0x9c, "hash"},
+        AimGrenadeThrowAlternateClipsetHash={0xa0, "hash"},
+        GestureBeckonOverrideClipSetHash={0xa4, "hash"},
+        GestureOverThereOverrideClipSetHash={0xa8, "hash"},
+        GestureHaltOverrideClipSetHash={0xac, "hash"},
+        GestureGlancesOverrideClipSetHash={0xb0, "hash"},
+        CombatReactionOverrideClipSetHash={0xb4, "hash"},
+        FPSTransitionFromIdleHash={0xb8, "hash"},
+        FPSTransitionFromRNGHash={0xbc, "hash"},
+        FPSTransitionFromLTHash={0xc0, "hash"},
+        FPSTransitionFromScopeHash={0xc4, "hash"},
+        FPSTransitionFromUnholsterHash={0xc8, "hash"},
+        FPSTransitionFromStealthHash={0xcc, "hash"},
+        FPSTransitionToStealthHash={0xd0, "hash"},
+        FPSTransitionToStealthFromUnholsterHash={0xd4, "hash"},
+        FPSFidgetClipsetHashes={
+            0xd8, "at_array",
+            ItemTemplate={
+                -- _base set at runtime
+                Item={0x00, "hash"}
+            },
+            ItemSize=0x4,
+            Count={0xe0, "int16"}
+        },
+        MovementOverrideClipSetHash={0xe8, "hash"},
+        WeaponClipSetHashForClone={0xec, "hash"},
+        MotionClipSetHashForClone={0xf0, "hash"},
+        AnimFireRateModifier={0xf4, "float"},
+        AnimBlindFireRateModifier={0xf8, "float"},
+        AnimWantingToShootFireRateModifier={0xfc, "float"},
+        UseFromStrafeUpperBodyAimNetwork={0x100, "bool"},
+        AimingDownTheBarrel={0x101, "bool"},
+        UseLeftHandIKAllowTags={0x102, "bool"},
+        BlockLeftHandIKWhileAiming={0x103, "bool"},
+    },
+    CFiringPatternInfo={
+        NumberOfBurstsMin={0x14, "int16"},
+        NumberOfBurstsMax={0x16, "int16"},
+        NumberOfShotsPerBurstMin={0x18, "int16"},
+        NumberOfShotsPerBurstMax={0x1a, "int16"},
+        TimeBetweenShotsMin={0x1c, "float"},
+        TimeBetweenShotsMax={0x20, "float"},
+        TimeBetweenShotsAbsoluteMin={0x24, "float"},
+        TimeBetweenBurstsMin={0x28, "float"},
+        TimeBetweenBurstsMax={0x2c, "float"},
+        TimeBetweenBurstsAbsoluteMin={0x30, "float"},
+        TimeBeforeFiringMin={0x34, "float"},
+        TimeBeforeFiringMax={0x38, "float"},
+        -- _0xAE2ADD87={0x3c, "bool"},
+    }
 }
-
--- static addresses
-
-function get_world_addr()
-    local world_base = memory.scan_pattern("48 8B 05 ? ? ? ? 45 ? ? ? ? 48 8B 48 08 48 85 C9 74 07")
-    if world_base:is_null() then
-        log.warning("World address is null! Either the pattern changed or something else is wrong.")
-        return nil
-    end
-    local world_offset = world_base:add(3):get_dword()
-    local world_addr = world_base:add(world_offset + 7)
-    if world_addr:is_null() then
-        log.warning("World address is null! Either the pattern changed or something else is wrong.")
-        return nil
-    end
-    return world_addr:deref()
-end
-
-function get_wpn_mgr_addr(world_addr)
-    if world_addr == nil then world_addr = get_world_addr() end
-    local cped = world_addr:add(0x8):deref()
-    if cped:is_null() then
-        log.warning("CPed address is null! Either the offset changed or something else is wrong.")
-        return nil
-    end
-    local wpn_mgr = cped:add(0x10B8):deref()
-    if wpn_mgr:is_null() then
-        log.warning("CPedWeaponManager address is null! Either the offset changed or something else is wrong.")
-        return nil
-    end
-    return wpn_mgr
-end
-
--- dynamic addresses
-
-function get_wpn_info_addr(wpn_mgr_addr, vehicle)
-    if wpn_mgr_addr == nil then return nil end
-    local addr = wpn_mgr_addr:add(vehicle and 0x70 or 0x20):deref()
-    if addr:is_null() then
-        return nil
-    end
-    return addr
-end
-
-function get_ammo_info_addr(wpn_info_addr)
-    local addr = wpn_info_addr:add(0x60):deref()
-    if addr:is_null() then -- e.g. melee weapons is null
-        return nil
-    end
-    return addr
-end
+-- facts
+    -- wpn_info + 8 -> + 0 -> +20 -> +18 -> +0 -> +58 -> 0 for special ammo CAmmoInfo
+    -- ammoinfo + 8 -> (1ab8f659bb0) + 0 -> (1ab95ad6590) + 0 -> ammoinfo (cycle)

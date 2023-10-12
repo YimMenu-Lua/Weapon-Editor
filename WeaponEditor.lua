@@ -624,7 +624,7 @@ function collect_addresses(item_type, recollect)
         -- CExplosionInfoManager = atArray<CExplosionTagData>
         local exp_list_base, exp_count = get_at_array_addr(Addresses.ExplosionBlob, 0)
         for i=0,exp_count-1 do
-            local exp_base = exp_list_base:add(0x88 * (i-1))
+            local exp_base = exp_list_base:add(0x88 * i)
             local name = exp_base:add(0x0):deref():get_string()
             local hash = joaat(exp_base:add(0x0):deref():get_string())
             if collected[hash] == nil then -- ignore 76 ~ 80 EXTINGUISHERs

@@ -124,7 +124,7 @@ function parse_into_gta_form(offset_table, output_table, request_registry, value
         end
         local gta = "dword" -- default
         if typ == "hash" then
-            local hash = joaat(value)
+            local hash = joaat(value ~= nil and value or "")
             request_registry[hash] = {key=next_tag, val=string.lower(tostring(value)), hash=hash}
             value = hash
         elseif typ == "enum" then
@@ -149,7 +149,7 @@ function parse_into_gta_form(offset_table, output_table, request_registry, value
             gta = typ:gsub("flags", "bitset")
         elseif typ:find("^ref_") then
             value = value_pack.xarg.ref
-            value = {type=typ:gsub("ref_", ""), hash=joaat(value), name=value}
+            value = {type=typ:gsub("ref_", ""), hash=joaat(value ~= nil and value or ""), name=value}
             gta = "ref"
         elseif typ == "vec2" then
             value = tonumber(value_pack.xarg.x)
@@ -476,7 +476,7 @@ function request_assets(script, name)
 end
 
 function request_audio(script, name)
-    while not AUDIO.REQUEST_SCRIPT_AUDIO_BANK(name) do script:yield() end
+    while not AUDIO.REQUEST_SCRIPT_AUDIO_BANK(name, false, 0) do script:yield() end
     log_debug("Loaded audio: "..name)
 end
 
